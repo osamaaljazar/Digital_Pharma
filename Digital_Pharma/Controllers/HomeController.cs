@@ -1,16 +1,15 @@
-using System.Diagnostics;
-using Digital_Pharma.Models;
+﻿using Digital_Pharma.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Digital_Pharma.Controllers
+namespace DigitalPharma.MVC.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly OpenFdaService _fdaService;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(OpenFdaService fdaService)
         {
-            _logger = logger;
+            _fdaService = fdaService;
         }
 
         public IActionResult Index()
@@ -18,15 +17,26 @@ namespace Digital_Pharma.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        public IActionResult Result()
         {
             return View();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        [HttpPost]
+        public async Task<IActionResult> CheckInteraction(string drugName)
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            if (string.IsNullOrWhiteSpace(drugName))
+                return View("Index");
+
+            var apiResponse = await _fdaService.GetDrugDataAsync(drugName);
+
+            if (apiResponse?.Results == null || !apiResponse.Results.Any())
+            {
+                ViewBag.Error = "❌ لم يتم العثور على معلومات لهذا الدواء";
+                return View("Index");
+            }
+
+            return View("Result", apiResponse.Results[0]);
         }
     }
 }

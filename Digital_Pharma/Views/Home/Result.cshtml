@@ -1,0 +1,73 @@
+﻿@model Digital_Pharma.Models.OpenFdaResult
+
+@{
+    ViewData["Title"] = "نتيجة الفحص";
+}
+
+<div class="container mt-5 text-center">
+
+    @if (Model != null)
+    {
+        <div class="alert alert-success">
+            <h1>✅ تم الاتصال بنجاح!</h1>
+            <p>البيانات وصلت من سيرفرات FDA الأمريكية</p>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h3>معلومات الدواء</h3>
+            </div>
+            <div class="card-body text-left" dir="ltr">
+                @if (Model?.OpenFda?.BrandName != null && Model.OpenFda.BrandName.Any())
+                {
+                    <p><strong>اسم الدواء (Brand Name):</strong> @Model.OpenFda.BrandName[0]</p>
+                }
+
+                @if (Model?.OpenFda?.GenericName != null && Model.OpenFda.GenericName.Any())
+                {
+                    <p><strong>الاسم العلمي (Generic Name):</strong> @Model.OpenFda.GenericName[0]</p>
+                }
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h3>التفاعلات الدوائية</h3>
+            </div>
+            <div class="card-body text-left" dir="ltr">
+                @if (Model?.DrugInteractions != null && Model.DrugInteractions.Any())
+                {
+                    <ul>
+                        @foreach (var interaction in Model.DrugInteractions)
+                        {
+                            <li>@interaction</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted">❌ لا توجد تفاعلات دوائية مسجلة لهذا الدواء.</p>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h3>Raw Data (للتأكد)</h3>
+            </div>
+            <div class="card-body text-left" dir="ltr">
+                <pre>@System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })</pre>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger">
+            <h1>❌ لم يتم العثور على بيانات.</h1>
+            <p>تأكد من اسم الدواء وحاول مجددًا.</p>
+        </div>
+    }
+
+    <br />
+    <a asp-action="Index" class="btn btn-secondary">بحث جديد</a>
+</div>

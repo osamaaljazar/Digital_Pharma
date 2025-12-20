@@ -1,7 +1,17 @@
+﻿using Digital_Pharma.Services;
+
 var builder = WebApplication.CreateBuilder(args);
+
+
+// --- تسجيل الخدمات (هنا السر) ---
+ // تفعيل الاتصال بالنت
+builder.Services.AddScoped<OpenFdaService>();     // تسجيل كلاس الخدمة
+builder.Services.AddHttpClient<OpenFdaService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+
 
 var app = builder.Build();
 
@@ -22,7 +32,7 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
+    pattern: "{controller=Home}/{action=Result}/{id?}")
     .WithStaticAssets();
 
 
