@@ -15,18 +15,18 @@ namespace DigitalPharma.MVC.Controllers
 
         public IActionResult Index() => View();
 
-        // يتم إضافة البارامترات هنا بين القوسين
+        
         [HttpPost]
         public async Task<IActionResult> CheckInteraction(string drugName1, string drugName2)
         {
-            // التحقق من أن المستخدم أدخل القيمتين
+            
             if (string.IsNullOrWhiteSpace(drugName1) || string.IsNullOrWhiteSpace(drugName2))
             {
                 ViewBag.Error = "⚠️ يرجى إدخال اسم الدواءين للفحص";
                 return View("Index");
             }
 
-            // طلب البيانات من الخدمة بشكل متوازي لتحسين السرعة
+            
             var task1 = _fdaService.GetDrugDataAsync(drugName1);
             var task2 = _fdaService.GetDrugDataAsync(drugName2);
 
@@ -35,7 +35,7 @@ namespace DigitalPharma.MVC.Controllers
             var res1 = await task1;
             var res2 = await task2;
 
-            // التأكد من وجود نتائج لكلا الدواءين
+            
             if (res1?.Results == null || !res1.Results.Any() || res2?.Results == null || !res2.Results.Any())
             {
                 ViewBag.Error = "❌ تعذر العثور على أحد الأدوية في قاعدة بيانات FDA";
@@ -45,7 +45,7 @@ namespace DigitalPharma.MVC.Controllers
             var drug1 = res1.Results[0];
             var drug2 = res2.Results[0];
 
-            // استدعاء منطق الفحص المتبادل
+            
             bool interactionFound = CheckForInteractions(drug1, drug2) ||
                                    CheckForInteractions(drug2, drug1);
 
@@ -62,7 +62,7 @@ namespace DigitalPharma.MVC.Controllers
             return View("Result", analysisResult);
         }
 
-        // دالة منطق الفحص (Logic)
+        
         private bool CheckForInteractions(OpenFdaResult sourceDrug, OpenFdaResult targetDrug)
         {
             var targetNames = new List<string>();
