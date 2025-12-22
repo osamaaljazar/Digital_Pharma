@@ -1,73 +1,78 @@
-﻿@model Digital_Pharma.Models.OpenFdaResult
+﻿@model Digital_Pharma.Models.InteractionAnalysis
 
 @{
-    ViewData["Title"] = "نتيجة الفحص";
+    ViewData["Title"] = "نتائج التحليل";
 }
 
-<div class="container mt-5 text-center">
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h2>:bar_chart: نتيجة الفحص المخبري</h2>
+        <hr />
+    </div>
 
-    @if (Model != null)
-    {
-        <div class="alert alert-success">
-            <h1>✅ تم الاتصال بنجاح!</h1>
-            <p>البيانات وصلت من سيرفرات FDA الأمريكية</p>
+    <!-- بطاقة الحالة (المنطق) -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-10">
+            @if (Model.InteractionFound)
+            {
+                <div class="card border-danger shadow">
+                    <div class="card-body text-center bg-danger text-white">
+                        <h3 class="card-title">:warning: تحذير: تم اكتشاف تداخل!</h3>
+                        <p class="card-text">@Model.AnalysisMessage</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card border-success shadow">
+                    <div class="card-body text-center bg-success text-white">
+                        <h3 class="card-title">:white_check_mark: النتيجة سليمة ظاهرياً</h3>
+                        <p class="card-text">@Model.AnalysisMessage</p>
+                    </div>
+                </div>
+            }
         </div>
+    </div>
 
-        <div class="card mb-3">
-            <div class="card-header bg-primary text-white">
-                <h3>معلومات الدواء</h3>
-            </div>
-            <div class="card-body text-left" dir="ltr">
-                @if (Model?.OpenFda?.BrandName != null && Model.OpenFda.BrandName.Any())
-                {
-                    <p><strong>اسم الدواء (Brand Name):</strong> @Model.OpenFda.BrandName[0]</p>
-                }
-
-                @if (Model?.OpenFda?.GenericName != null && Model.OpenFda.GenericName.Any())
-                {
-                    <p><strong>الاسم العلمي (Generic Name):</strong> @Model.OpenFda.GenericName[0]</p>
-                }
-            </div>
-        </div>
-
-        <div class="card mb-3">
-            <div class="card-header bg-info text-white">
-                <h3>التفاعلات الدوائية</h3>
-            </div>
-            <div class="card-body text-left" dir="ltr">
-                @if (Model?.DrugInteractions != null && Model.DrugInteractions.Any())
-                {
-                    <ul>
-                        @foreach (var interaction in Model.DrugInteractions)
+    <!-- تفاصيل الأدوية المقارنة -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-dark text-white text-center">
+                    دواء (A): @(Model.Drug1.OpenFda?.BrandName?.FirstOrDefault() ?? "غير متوفر")
+                </div>
+                <div class="card-body" dir="ltr">
+                    <p><strong>Generic:</strong> @(Model.Drug1.OpenFda?.GenericName?.FirstOrDefault() ?? "N/A")</p>
+                    <h6>Interactions Text Preview:</h6>
+                    <div class="small text-muted overflow-auto" style="max-height: 150px;">
+                        @if (Model.Drug1.DrugInteractions != null)
                         {
-                            <li>@interaction</li>
+                            @string.Join(" ", Model.Drug1.DrugInteractions).Substring(0, Math.Min(300, string.Join(" ", Model.Drug1.DrugInteractions).Length))
                         }
-                    </ul>
-                }
-                else
-                {
-                    <p class="text-muted">❌ لا توجد تفاعلات دوائية مسجلة لهذا الدواء.</p>
-                }
+                    </div>
+                </div>
             </div>
         </div>
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-dark text-white text-center">
+                    دواء (B): @(Model.Drug2.OpenFda?.BrandName?.FirstOrDefault() ?? "غير متوفر")
+                </div>
+                <div class="card-body" dir="ltr">
+                    <p><strong>Generic:</strong> @(Model.Drug2.OpenFda?.GenericName?.FirstOrDefault() ?? "N/A")</p>
+                    <h6>Interactions Text Preview:</h6>
+                    <div class="small text-muted overflow-auto" style="max-height: 150px;">
+                        @if (Model.Drug2.DrugInteractions != null)
+                        {
+                            @string.Join(" ", Model.Drug2.DrugInteractions).Substring(0, Math.Min(300, string.Join(" ", Model.Drug2.DrugInteractions).Length))
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h3>Raw Data (للتأكد)</h3>
-            </div>
-            <div class="card-body text-left" dir="ltr">
-                <pre>@System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })</pre>
-            </div>
-        </div>
-    }
-    else
-    {
-        <div class="alert alert-danger">
-            <h1>❌ لم يتم العثور على بيانات.</h1>
-            <p>تأكد من اسم الدواء وحاول مجددًا.</p>
-        </div>
-    }
-
-    <br />
-    <a asp-action="Index" class="btn btn-secondary">بحث جديد</a>
+    <div class="text-center mt-5">
+        <a asp-action="Index" class="btn btn-secondary btn-lg">العودة للبحث</a>
+    </div>
 </div>

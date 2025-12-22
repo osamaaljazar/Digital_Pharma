@@ -1,22 +1,44 @@
 ﻿@{
-    ViewData["Title"] = "بحث عن دواء";
+    ViewData["Title"] = "فحص التداخل الدوائي";
 }
 
-<div class="container mt-5 text-center">
-    <h1>🔍 ابحث عن تفاعلات أي دواء</h1>
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4">💊 Digital Pharma </h1>
+        <p class="lead">أدخل اسم دوائين للتحقق من وجود تداخلات كيميائية بينهما</p>
+    </div>
 
-    <form asp-action="CheckInteraction" method="post" class="mt-4">
-        <input type="text" name="drugName" class="form-control mb-3" placeholder="1 أدخل اسم الدواء" required />
-        
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-action="CheckInteraction" method="post">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الدواء الأول</label>
+                                <input type="text" name="drugName1" class="form-control form-control-lg" placeholder="مثال: Aspirin" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الدواء الثاني</label>
+                                <input type="text" name="drugName2" class="form-control form-control-lg" placeholder="مثال: Warfarin" required />
+                            </div>
+                        </div>
 
-        <input type="text" name="drugName" class="form-control mb-3" placeholder="2 أدخل اسم الدواء" required />
-        <button type="submit" class="btn btn-primary">تحقق</button>
-    </form>
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                🔍 بدء فحص التداخل
+                            </button>
+                        </div>
+                    </form>
 
-    @if (ViewBag.Error != null)
-    {
-        <div class="alert alert-danger mt-3">
-            @ViewBag.Error
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-warning mt-4 border-start border-4 border-warning">
+                            @ViewBag.Error
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
-    }
+    </div>
 </div>
