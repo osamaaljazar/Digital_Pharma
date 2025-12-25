@@ -1,0 +1,35 @@
+﻿@model Digital_Pharma.Models.Doctor
+
+@{
+    ViewData["Title"] = "Doctor Information";
+}
+
+<h2>معلومات الدكتور</h2>
+
+<form asp-action="DoctorInfo" method="post">
+    <div class="form-group mb-3">
+        <label asp-for="FullName" class="form-label">الاسم الكامل</label>
+        <input asp-for="FullName" class="form-control" />
+        <span asp-validation-for="FullName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="LicenseNumber" class="form-label">رقم الترخيص</label>
+        <input asp-for="LicenseNumber" class="form-control" />
+        <span asp-validation-for="LicenseNumber" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Specialization" class="form-label">التخصص</label>
+        <input asp-for="Specialization" class="form-control" />
+        <span asp-validation-for="Specialization" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">حفظ المعلومات</button>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

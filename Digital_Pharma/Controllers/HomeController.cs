@@ -6,25 +6,19 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Security.Cryptography;
 
-
-
 namespace DigitalPharma.MVC.Controllers
 {
     public class HomeController : Controller
     {
         private readonly OpenFdaService _fdaService;
-
-
-        // هذا الـ constructor يقوم بحقن الخدمات الضرورية في الكونترولر:
-        // 1. _context: هو الـ DbContext الخاص بالتطبيق للتعامل مع قاعدة البيانات (Users, Doctors, Searches)
-        // 2. _fdaService: هو خدمة للتواصل مع قاعدة بيانات FDA لفحص تداخل الأدوية
-        // ASP.NET Core يقوم تلقائيًا بإنشاء نسخة من هذه الخدمات من خلال Dependency Injection
         private readonly PharmaDbContext _context;
+
         public HomeController(PharmaDbContext context, OpenFdaService fdaService)
         {
-            _context = context;      // تخزين DbContext لاستخدامه في باقي الـ methods
-            _fdaService = fdaService; // تخزين خدمة FDA لاستخدامها عند فحص التداخل
+            _context = context;
+            _fdaService = fdaService;
         }
+
         public IActionResult Index() => View();
 
         [HttpPost]
@@ -38,7 +32,6 @@ namespace DigitalPharma.MVC.Controllers
 
             var task1 = _fdaService.GetDrugDataAsync(drugName1);
             var task2 = _fdaService.GetDrugDataAsync(drugName2);
-
             await Task.WhenAll(task1, task2);
 
             var res1 = await task1;
@@ -61,9 +54,39 @@ namespace DigitalPharma.MVC.Controllers
                 Drug2 = drug2,
                 InteractionFound = interactionFound,
                 AnalysisMessage = interactionFound ?
-                    "⚠️ تحذير: تم اكتشاف تفاعل محتمل بين هذين الدوائين بناءً على نصوص التحذيرات." :
-                    "✅ لم يتم العثور على تداخل مباشر في نصوص التحذيرات المسجلة."
+                    "⚠️ تحذير: تم اكتشاف تفاعل محتمل بين هذين الدوائين." :
+                    "✅ لم يتم العثور على تداخل مباشر."
             };
+
+            var userId = HttpContext.Session.GetInt32("UserId");
+            int? doctorId = null;
+
+            if (userId != null)
+            {
+                var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.UserId == userId);
+                doctorId = doctor?.Id;
+            }
+
+            var search = new Search
+            {
+                Drug1Name = drug1.OpenFda?.BrandName?.FirstOrDefault() ?? drug1.OpenFda?.GenericName?.FirstOrDefault() ?? drugName1,
+                Drug2Name = drug2.OpenFda?.BrandName?.FirstOrDefault() ?? drug2.OpenFda?.GenericName?.FirstOrDefault() ?? drugName2,
+                InteractionFound = interactionFound,
+                ResultMessage = analysisResult.AnalysisMessage,
+                UserId = userId,
+                DoctorId = doctorId
+            };
+
+            try
+            {
+                _context.Searches.Add(search);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                ViewBag.Error = ex.InnerException?.Message ?? ex.Message;
+                return View("Index", analysisResult);
+            }
 
             return View("Result", analysisResult);
         }
@@ -81,41 +104,36 @@ namespace DigitalPharma.MVC.Controllers
                 foreach (var name in targetNames)
                 {
                     if (interactionText.Contains(name, StringComparison.OrdinalIgnoreCase))
-                    {
                         return true;
-                    }
                 }
             }
             return false;
         }
 
         [HttpGet]
-        public IActionResult SignUp()
-        {
-            return View();
-        }
-
+        public IActionResult SignUp() => View();
         [HttpPost]
         public async Task<IActionResult> SignUp(User newUser)
         {
-            if (ModelState.IsValid) return View(newUser);
-                {
-                    var existUser = await _context.Users
-                        .AnyAsync(u => u.Email.ToLower() == newUser.Email.ToLower());
+            if (ModelState.IsValid)
+                return View(newUser);
 
-                    if (existUser)
-                    {
-                        TempData["Message"] = "هذا البريد مسجل مسبقًا، الرجاء تسجيل الدخول";
-                        return RedirectToAction("Login", "Home");
-                    }
+            var existUser = await _context.Users.AnyAsync(u => u.Email.ToLower() == newUser.Email.ToLower());
+            if (existUser)
+            {
+                TempData["Message"] = "هذا البريد مسجل مسبقًا، الرجاء تسجيل الدخول";
+                return RedirectToAction("Login", "Home");
+            }
 
-                    newUser.PasswordHash = HashPassword(newUser.Password);
-                await _context.Users.AddAsync(newUser);
-                    await _context.SaveChangesAsync();
+            // خليه مثل ما كان
+            await _context.Users.AddAsync(newUser);
+            await _context.SaveChangesAsync();
 
-                    TempData["Message"] = "تم التسجيل بنجاح، الرجاء تسجيل الدخول";
-                    return RedirectToAction("Login", "Home");
-                } }
+            TempData["Message"] = "تم التسجيل بنجاح، الرجاء تسجيل الدخول";
+            return RedirectToAction("Login", "Home");
+        }
+
+
         private string HashPassword(string password)
         {
             using (SHA256 sha256 = SHA256.Create())
@@ -123,13 +141,12 @@ namespace DigitalPharma.MVC.Controllers
                 byte[] bytes = Encoding.UTF8.GetBytes(password);
                 byte[] hash = sha256.ComputeHash(bytes);
                 return Convert.ToBase64String(hash);
-            } 
+            }
         }
+
         [HttpGet]
-        public IActionResult Login()
-        {
-            return View();
-        }
+        public IActionResult Login() => View();
+
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
@@ -139,15 +156,70 @@ namespace DigitalPharma.MVC.Controllers
                 return View();
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
-            if (user == null || user.PasswordHash != HashPassword(password))
+            var normalizedEmail = email.Trim().ToLower();
+            var hashedPassword = HashPassword(password);
+
+            // تحقق إذا يوجد مستخدم مطابق للبريد وكلمة السر
+            bool userExists = await _context.Users
+                .AnyAsync(u => u.Email.ToLower() == normalizedEmail && u.PasswordHash == hashedPassword);
+
+            if (!userExists)
             {
                 ViewBag.Error = "البريد أو كلمة السر غير صحيحة";
                 return View();
             }
 
-            // تسجيل الدخول ناجح → Redirect مباشرة للـ Index
+            // جلب الـ UserId لتخزينه في الجلسة
+            var userId = await _context.Users
+                .Where(u => u.Email.ToLower() == normalizedEmail && u.PasswordHash == hashedPassword)
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
+
+            HttpContext.Session.SetInt32("UserId", userId);
+
             return RedirectToAction("Index", "Home");
         }
+
+
+        [HttpGet]
+        public IActionResult DoctorInfo()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Home");
+
+            // إذا هذا المستخدم مسجل كدكتور مسبقاً → نرجعه للـ Index مباشرة
+            bool isDoctor = _context.Doctors.Any(d => d.UserId == userId);
+            if (isDoctor)
+                return RedirectToAction("Index", "Home");
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DoctorInfo(Doctor doctor)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Home");
+
+            bool alreadyDoctor = await _context.Doctors.AnyAsync(d => d.UserId == userId);
+            if (alreadyDoctor)
+                return RedirectToAction("Index", "Home");
+
+            if (!ModelState.IsValid)
+                return View(doctor);
+
+            doctor.UserId = userId.Value;
+            doctor.IsVerified = false;
+
+            await _context.Doctors.AddAsync(doctor);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Index", "Home");
+        }
+
     }
-    }
+}

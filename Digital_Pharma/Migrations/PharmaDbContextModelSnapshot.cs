@@ -64,6 +64,9 @@ namespace Digital_Pharma.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("DoctorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Drug1Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -86,6 +89,8 @@ namespace Digital_Pharma.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DoctorId");
 
                     b.HasIndex("UserId");
 
@@ -142,7 +147,7 @@ namespace Digital_Pharma.Migrations
                     b.HasOne("Digital_Pharma.Models.User", "User")
                         .WithOne()
                         .HasForeignKey("Digital_Pharma.Models.Doctor", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -150,10 +155,17 @@ namespace Digital_Pharma.Migrations
 
             modelBuilder.Entity("Digital_Pharma.Models.Search", b =>
                 {
+                    b.HasOne("Digital_Pharma.Models.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Digital_Pharma.Models.User", "User")
                         .WithMany("Searches")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Doctor");
 
                     b.Navigation("User");
                 });

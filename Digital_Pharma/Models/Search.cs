@@ -21,10 +21,15 @@ namespace Digital_Pharma.Models
 
         public DateTime SearchDate { get; set; } = DateTime.Now;
 
-        // ربط البحث بالمستخدم
-        public int? UserId { get; set; } // Nullable
-
+  
+          // ربط بالمستخدم (User)
+        public int? UserId { get; set; }
         [ForeignKey("UserId")]
-        public User? User { get; set; } // Nullable
+        public User? User { get; set; }
+
+           // ربط بالدكتور (Doctor)
+        public int? DoctorId { get; set; }
+        [ForeignKey("DoctorId")]
+        public Doctor? Doctor { get; set; }
     }
 }
