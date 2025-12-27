@@ -112,6 +112,7 @@ namespace DigitalPharma.MVC.Controllers
 
         [HttpGet]
         public IActionResult SignUp() => View();
+
         [HttpPost]
         public async Task<IActionResult> SignUp(User newUser)
         {
@@ -122,17 +123,18 @@ namespace DigitalPharma.MVC.Controllers
             if (existUser)
             {
                 TempData["Message"] = "هذا البريد مسجل مسبقًا، الرجاء تسجيل الدخول";
-                return RedirectToAction("Login", "Home");
+                return RedirectToAction("Account", "Home");
             }
 
-            // خليه مثل ما كان
+            // تحويل كلمة السر إلى Hash قبل الحفظ
+            newUser.PasswordHash = HashPassword(newUser.Password);
+
             await _context.Users.AddAsync(newUser);
             await _context.SaveChangesAsync();
 
             TempData["Message"] = "تم التسجيل بنجاح، الرجاء تسجيل الدخول";
-            return RedirectToAction("Login", "Home");
+            return RedirectToAction("Account", "Home");
         }
-
 
         private string HashPassword(string password)
         {
@@ -166,7 +168,7 @@ namespace DigitalPharma.MVC.Controllers
             if (!userExists)
             {
                 ViewBag.Error = "البريد أو كلمة السر غير صحيحة";
-                return View();
+                return View("Auth");
             }
 
             // جلب الـ UserId لتخزينه في الجلسة
@@ -180,6 +182,11 @@ namespace DigitalPharma.MVC.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        [HttpGet]
+        public IActionResult Account()
+        {
+            return View();
+        }
 
         [HttpGet]
         public IActionResult DoctorInfo()
@@ -187,14 +194,9 @@ namespace DigitalPharma.MVC.Controllers
             var userId = HttpContext.Session.GetInt32("UserId");
 
             if (userId == null)
-                return RedirectToAction("Login", "Home");
+                return RedirectToAction("Login", "Home"); // إذا المستخدم لم يسجل دخول
 
-            // إذا هذا المستخدم مسجل كدكتور مسبقاً → نرجعه للـ Index مباشرة
-            bool isDoctor = _context.Doctors.Any(d => d.UserId == userId);
-            if (isDoctor)
-                return RedirectToAction("Index", "Home");
-
-            return View();
+            return View(); // الصفحة اختيارية، يمكن تعبئة بيانات الدكتور وقتما يريد
         }
 
         [HttpPost]
@@ -220,6 +222,14 @@ namespace DigitalPharma.MVC.Controllers
 
             return RedirectToAction("Index", "Home");
         }
+        public IActionResult Welcome()
+        {
+            return View();
+        }
+
+
+
+
 
     }
 }

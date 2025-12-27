@@ -1,0 +1,244 @@
+﻿<div class="auth-container" id="authContainer">
+    <!-- Left Side (Overlay/Text) -->
+    <div class="overlay-area">
+        <div class="overlay-panel overlay-left">
+            <h1>Welcome Back!</h1>
+            <p>To keep connected with us please login</p>
+            <button class="btn ghost" id="goSignup">I DON'T HAVE ACCOUNT</button>
+        </div>
+        <div class="overlay-panel overlay-right">
+            <h1>Hello, Friend!</h1>
+            <p>Enter your personal details and start your journey</p>
+            <button class="btn ghost" id="goLogin">I HAVE ACCOUNT</button>
+        </div>
+    </div>
+
+    <!-- Right Side (Forms) -->
+    <div class="form-area">
+        <div class="form-container login-container">
+            <form asp-action="Login" method="post">
+                <h1>Login</h1>
+                <div class="input-box">
+                    <input type="email" name="Email" placeholder="Email" required>
+                </div>
+                <div class="input-box">
+                    <input type="password" name="Password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+        </div>
+        <div class="form-container signup-container">
+            <form asp-action="SignUp" method="post">
+                <h1>Sign Up</h1>
+                <div class="input-box">
+                    <input type="text" name="UserName" placeholder="UserName" required>
+                </div>
+                <div class="input-box">
+                    <input type="email" name="Email" placeholder="Email" required>
+                </div>
+                <div class="input-box">
+                    <input type="password" name="Password" placeholder="Password" required>
+                </div>
+                <div class="input-box">
+                    <input type="tel" name="PhoneNumber" placeholder="Phone Number" required>
+                </div>
+                <div class="input-box">
+                    <input type="date" name="DateOfBirth" placeholder="Date of Birth" required>
+                </div>
+                <button type="submit" class="btn">Sign Up</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial,sans-serif;
+    }
+
+    /* الحاوية الرئيسية */
+    .auth-container {
+        width: 900px;
+        height: 600px;
+        margin: 50px auto;
+        display: flex;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        background-color: #fff; /* الصفحة تبقى بيضاء */
+    }
+
+    /* الجانب النصي - overlay كامل باللون الكحلي */
+    .overlay-area {
+        width: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        background-color: #1a1a3d; /* غطاء كامل بالكحلي */
+    }
+
+    /* الألواح النصية */
+    .overlay-panel {
+        position: absolute;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+        color: white; /* نصوص كلها بالابيض */
+        background-color: transparent; /* شفاف لأنه الآن الخلفية كاملة للكحلي */
+        transition: transform 0.6s ease, opacity 0.6s ease;
+        border-radius: 0 20px 20px 0;
+    }
+
+        /* أزرار overlay كلها أبيض */
+        .overlay-panel .btn.ghost {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+
+    .overlay-left {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .overlay-right {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    /* الجانب الفورم */
+    .form-area {
+        width: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-container {
+        width: 80%;
+        max-width: 400px;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        transition: transform 0.6s ease;
+        background-color: white; /* الفورم أبيض */
+        color: #1a1a3d; /* نصوص الفورم كحلي */
+        border-radius: 10px;
+    }
+
+    .signup-container {
+        transform: translateX(100%);
+    }
+
+    /* الحالة النشطة */
+    .auth-container.right-panel-active .login-container {
+        transform: translateX(-100%);
+    }
+
+    .auth-container.right-panel-active .signup-container {
+        transform: translateX(0);
+    }
+
+    .auth-container.right-panel-active .overlay-left {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    .auth-container.right-panel-active .overlay-right {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    /* المدخلات والأزرار */
+    .input-box {
+        position: relative;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+        .input-box input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            color: #1a1a3d;
+        }
+
+    .btn {
+        margin-top: 20px;
+        padding: 12px 45px;
+        border: none;
+        border-radius: 10px;
+        background-color: #2575fc; /* ازرق */
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(37,117,252,0.4);
+        }
+
+        .btn.ghost {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            cursor: pointer;
+        }
+
+    h1 {
+        margin-bottom: 20px;
+    }
+
+    p {
+        font-size: 16px;
+    }
+    /* الأزرار داخل الفورم */
+    .form-container .btn {
+        background-color: #1a1a3d; /* نفس الكحلي الداكن للـ overlay */
+        color: white; /* نص الزر أبيض */
+        font-weight: bold;
+    }
+
+    /* نصوص العناوين داخل overlay */
+    .overlay-left h1,
+    .overlay-right h1 {
+        color: white; /* النصوص بالابيض */
+    }
+
+    /* نصوص الفقرة داخل overlay */
+    .overlay-left p,
+    .overlay-right p {
+        color: white; /* نصوص الفقرة بالابيض */
+    }
+</style>
+
+<script>
+    const goSignup = document.getElementById("goSignup");
+    const goLogin = document.getElementById("goLogin");
+    const container = document.getElementById("authContainer");
+
+    goSignup.addEventListener("click", ()=> container.classList.add("right-panel-active"));
+    goLogin.addEventListener("click", ()=> container.classList.remove("right-panel-active"));
+</script>
