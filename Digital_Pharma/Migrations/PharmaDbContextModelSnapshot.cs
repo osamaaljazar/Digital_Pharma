@@ -64,6 +64,9 @@ namespace Digital_Pharma.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AiAnalysis")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("DoctorId")
                         .HasColumnType("int");
 
@@ -78,12 +81,26 @@ namespace Digital_Pharma.Migrations
                     b.Property<bool>("InteractionFound")
                         .HasColumnType("bit");
 
+                    b.Property<string>("PatientContext")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Recommendation")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ResultMessage")
-                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SafeAlternatives")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("SearchDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Severity")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShareToken")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
@@ -115,20 +132,33 @@ namespace Digital_Pharma.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Gender")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("IsMarried")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsPregnant")
+                        .HasColumnType("bit");
+
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("MedicalConditions")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ProfileCompleted")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
@@ -140,6 +170,34 @@ namespace Digital_Pharma.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Digital_Pharma.Models.UserMedication", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DrugName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserMedications");
                 });
 
             modelBuilder.Entity("Digital_Pharma.Models.Doctor", b =>
@@ -166,6 +224,17 @@ namespace Digital_Pharma.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Doctor");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Digital_Pharma.Models.UserMedication", b =>
+                {
+                    b.HasOne("Digital_Pharma.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

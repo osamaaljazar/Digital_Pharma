@@ -1,31 +1,39 @@
-﻿using DB.DBB;
+using DB.DBB;
 using Digital_Pharma.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// تسجيل الخدمات
+builder.Services.AddControllersWithViews();
+
+// DbContext
+builder.Services.AddDbContext<PharmaDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DigitalPharmaDB"),
+        sql => sql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null)
+    ));
+
+// Services
 builder.Services.AddScoped<OpenFdaService>();
 builder.Services.AddHttpClient<OpenFdaService>();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<ClaudeAiService>();
+builder.Services.AddHttpClient<ClaudeAiService>();
 
-// إضافة DbContext
-builder.Services.AddDbContext<PharmaDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DigitalPharmaDB")));
+builder.Services.AddScoped<GeminiAiService>();
+builder.Services.AddHttpClient<GeminiAiService>();
 
-// تفعيل الجلسة
+// Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.IdleTimeout = TimeSpan.FromMinutes(60);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -34,17 +42,12 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
-// تفعيل الجلسة قبل Authorization
 app.UseSession();
-
 app.UseAuthorization();
 
-// Route افتراضي بدون .WithStaticAssets()
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Auth}/{id?}");
 
 app.Run();
